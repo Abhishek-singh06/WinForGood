@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-deep-black: #050709;
+    --bg-near-black: #0A0E13;
+    --bg-dark-alt: #10151D;
+    --bg-white: #FFFFFF;
+    --bg-light-grey: #F4F6F8;
+
+    --surface-charcoal: #151B23;
+    --surface-graphite: #1E2631;
+    --surface-silver: #8F9CAE;
+    --surface-soft-grey: #E2E8F0;
+
+    --text-primary: #FFFFFF;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+    --text-silver: #CBD5E1;
+
+    --accent-red: #E11D48;
+    --accent-red-hover: #F43F5E;
+    --accent-blue: #2563EB;
+    --accent-blue-electric: #3B82F6;
+
+    --border-subtle: rgba(255, 255, 255, 0.10);
+    --border-silver: rgba(195, 207, 222, 0.24);
+    --border-strong: rgba(195, 207, 222, 0.45);
+  }
+
+  body {
+    background-color: var(--bg-deep-black);
+    color: var(--text-primary);
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: rgba(59, 130, 246, 0.35);
+    color: #FFFFFF;
+  }
+}
+
+/* Metallic silver sheen effect */
+.silver-sheen {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.00) 100%);
+}
+
+.charcoal-card-gradient {
+  background: linear-gradient(180deg, #18202B 0%, #111720 100%);
+}

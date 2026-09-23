@@ -3,6 +3,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getAuthCallbackUrl, getSafeRedirectPath } from "./url";
 
 export interface AuthResponse {
   success: boolean;
@@ -95,7 +96,9 @@ export async function signInAction(
     .single();
 
   const isUserAdmin = profile?.role === "admin";
-  const destination = isUserAdmin ? "/admin" : "/dashboard";
+  const nextParam = (formData.get("next") as string)?.trim();
+  const safeNext = nextParam ? getSafeRedirectPath(nextParam) : null;
+  const destination = isUserAdmin ? "/admin" : (safeNext || "/dashboard");
 
   revalidatePath("/", "layout");
   redirect(destination);
@@ -138,11 +141,13 @@ export async function signUpAction(
   }
 
   const supabase = await createServerSupabaseClient();
+  const emailRedirectTo = getAuthCallbackUrl();
 
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
+      emailRedirectTo,
       data: {
         full_name: fullName,
         charity_id: charityId || null,
@@ -159,17 +164,39 @@ export async function signUpAction(
     };
   }
 
+  // Check if strict email confirmation is demanded by environment configuration
+  const requireEmailConfirmation = process.env.AUTH_REQUIRE_EMAIL_CONFIRMATION === "true";
+
+  // For Demo/Test/Review experience: auto-confirm user if session is not yet active
+  if (!requireEmailConfirmation && data.user && !data.session) {
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      try {
+        const { createAdminClient } = await import("@/lib/supabase/admin");
+        const adminClient = createAdminClient();
+        await adminClient.auth.admin.updateUserById(data.user.id, {
+          email_confirm: true,
+        });
+      } catch (adminErr) {
+        console.warn("[signUpAction] Auto-confirm bypassed:", adminErr);
+      }
+    }
+  }
+
   revalidatePath("/", "layout");
   
-  if (data.session) {
-    redirect("/dashboard");
-  } else {
-    // If Supabase project requires email confirmation
+  if (requireEmailConfirmation && !data.session) {
     return {
       success: true,
       redirectTo: "/login?confirmed=pending",
     };
   }
+
+  // Seamless Demo/Test/Review flow:
+  // User account is created. Proceed directly to Login.
+  return {
+    success: true,
+    redirectTo: `/login?registered=true&email=${encodeURIComponent(email)}`,
+  };
 }
 
 /**

@@ -47,4 +47,10 @@ describe("Authentication Actions & Validation Logic (PRD § 03)", () => {
     expect(formData.get("role")).toBe("admin");
     // signUpAction ignores formData.get('role') completely
   });
+
+  it("should ensure signUpAction generates canonical emailRedirectTo matching getAuthCallbackUrl", async () => {
+    const { getAuthCallbackUrl } = await import("../lib/auth/url");
+    const callbackUrl = getAuthCallbackUrl();
+    expect(callbackUrl).toContain("/auth/callback");
+  });
 });

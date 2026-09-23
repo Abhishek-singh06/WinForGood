@@ -176,21 +176,22 @@ The exact payment-provider implementation follows the selected PCI-compliant pro
 # 6. Signup Flow
 
 ```text
-Signup
+Signup Form Submission
   ↓
-Account Information
+Account Information & Charity Selection
   ↓
-Plan Selection
+Server Action (signUpAction)
+  ├── emailRedirectTo = ${NEXT_PUBLIC_APP_URL}/auth/callback
   ↓
-Charity Selection
+Verification Email Sent (Supabase Auth)
   ↓
-Contribution Percentage
+User Clicks Email Link
   ↓
-Payment
+GET /auth/callback?code=...
   ↓
-Account / Subscription Confirmation
+exchangeCodeForSession(code) + Cookie Sync
   ↓
-Dashboard
+Safe Relative Redirect (Dashboard / Admin)
 ```
 
 Do not add additional mandatory signup steps unless a later approved requirement requires them.
@@ -202,12 +203,13 @@ Do not add additional mandatory signup steps unless a later approved requirement
 ```text
 Login
   ↓
-Authentication
+Authentication (Credentials / Session)
   ↓
 Subscription Status Check
   ↓
 Access Decision
   ├── Active / permitted → Subscriber Platform
+  ├── Invalid / Expired Email Verification → /login?error=verification_failed
   └── Restricted / inactive → Restricted Experience
 ```
 

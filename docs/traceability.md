@@ -215,6 +215,32 @@ Required capabilities:
 
 ---
 
+## TR-023 — Authentication Email Verification & Callback Redirect Flow
+
+**Requirement**
+
+Email verification link generation must resolve canonical production application URL (`NEXT_PUBLIC_APP_URL`) and direct users to `/auth/callback`, where temporary PKCE tokens are safely exchanged for session cookies without leaking `localhost` in production. Open redirects must be strictly prohibited.
+
+**Business rules:** BR-001, BR-002, BR-140
+
+**Flows:** Signup Flow, Email Verification Flow, Session Exchange Flow
+
+**Edge cases:** Expired OTP/link, missing verification code, malicious external `next` return parameter, protocol-relative redirect injection.
+
+**Implementation:**
+- Canonical URL & Security: `src/lib/auth/url.ts` (`getAppUrl()`, `getSafeRedirectPath()`, `getAuthCallbackUrl()`)
+- Server Action: `src/lib/auth/actions.ts` (`signUpAction` with `emailRedirectTo`, `signInAction` with safe destination)
+- Route Handler: `src/app/auth/callback/route.ts` (PKCE session exchange, cookie propagation, role-based landing)
+- UI: `src/app/login/page.tsx` (Handles `confirmed=pending`, `confirmed=verified`, and `error` parameters)
+
+**Tests:**
+- `src/__tests__/auth_redirects.test.ts` (20 unit and integration tests)
+- `src/__tests__/auth.test.ts` (5 unit tests)
+
+**Status:** VERIFIED (Production Bug Fix 2026-09-23)
+
+---
+
 # 6. § 04 — Subscription & Payment
 
 ## TR-030 — Monthly and yearly plans

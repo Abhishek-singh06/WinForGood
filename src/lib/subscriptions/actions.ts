@@ -5,6 +5,7 @@ import { getCurrentUserAndProfile } from "@/lib/auth/actions";
 import { getStripeClient } from "@/lib/stripe/client";
 import { resolveSubscriptionAccess, getPricingConfig } from "@/lib/subscriptions/resolver";
 import type { SubscriptionActionResult } from "@/lib/subscriptions/types";
+import { getAppUrl } from "@/lib/auth/url";
 
 /**
  * =========================================================================
@@ -34,7 +35,7 @@ import type { SubscriptionActionResult } from "@/lib/subscriptions/types";
  * Uses NEXT_PUBLIC_APP_URL if set, falls back to localhost for development.
  */
 function getBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return getAppUrl();
 }
 
 /**

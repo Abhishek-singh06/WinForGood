@@ -401,6 +401,14 @@ Every table in the database schema is justified below against the authoritative 
   - Cookies configured with `SameSite=Lax`, `Secure`, `HttpOnly`.
   - Automatic token refresh on active user activity.
   - Real-time revocation check on privileged admin actions.
+- **Canonical Application URL Resolution:**
+  - Configured via `NEXT_PUBLIC_APP_URL` (`https://win-for-good.vercel.app` in production, `http://localhost:3000` in local dev).
+  - Authoritative helper in `src/lib/auth/url.ts` sanitizes trailing slashes and ensures no localhost fallback leaks into production environments.
+- **Email Verification & Callback Route:**
+  - Signup generates `options.emailRedirectTo = `${getAppUrl()}/auth/callback`` via `src/lib/auth/actions.ts`.
+  - Next.js Route Handler `src/app/auth/callback/route.ts` implements PKCE code exchange (`exchangeCodeForSession`), synchronizes SSR cookies, and resolves user destination.
+- **Open-Redirect Defenses:**
+  - `getSafeRedirectPath` in `src/lib/auth/url.ts` enforces strict relative URL formatting (starts with single `/`, rejects `//`, rejects `\`, rejects external URI schemes) to protect callback and login return flows against open redirect vulnerabilities.
 - **Signup Hook:** PostgreSQL trigger `on_auth_user_created` automatically provisions a row in `profiles` with default role `'subscriber'` and initiates user charity preferences.
 
 ---

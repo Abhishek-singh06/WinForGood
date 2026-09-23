@@ -12,14 +12,23 @@ import { Shield, ArrowRight, AlertCircle, CheckCircle, Sparkles } from "lucide-r
 import { useSearchParams } from "next/navigation";
 
 function LoginForm() {
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const registered = searchParams.get("registered") === "true";
+  const confirmed = searchParams.get("confirmed");
+  const next = searchParams.get("next");
+  const urlError = searchParams.get("error");
+  const emailParam = searchParams.get("email") || "";
+
+  const [email, setEmail] = useState(emailParam);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const searchParams = useSearchParams();
-  const confirmed = searchParams.get("confirmed");
-  const next = searchParams.get("next");
+  React.useEffect(() => {
+    if (emailParam) {
+      setEmail(emailParam);
+    }
+  }, [emailParam]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,6 +38,9 @@ function LoginForm() {
     const formData = new FormData();
     formData.append("email", email);
     formData.append("password", password);
+    if (next) {
+      formData.append("next", next);
+    }
 
     try {
       const res = await signInAction(null, formData);
@@ -64,12 +76,26 @@ function LoginForm() {
             </p>
           </div>
 
-          {confirmed === "pending" && (
-            <div className="p-4 rounded bg-surface-charcoal border border-border-silver flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-              <p className="text-xs text-text-silver leading-relaxed">
-                Registration initiated! Please check your email to confirm your account before logging in.
+          {(registered || confirmed === "pending" || confirmed === "verified") && (
+            <div className="p-4 rounded bg-surface-charcoal border border-green-500/40 flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+              <p className="text-xs text-text-silver leading-relaxed font-medium">
+                Account created successfully. You can now log in.
               </p>
+            </div>
+          )}
+
+          {urlError && !errorMessage && (
+            <div
+              role="alert"
+              className="p-3.5 rounded bg-accent-red-subtle/30 border border-red-500/40 text-xs text-red-300 flex items-start gap-2.5"
+            >
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <span>
+                {urlError === "verification_failed"
+                  ? "Email verification link is invalid, expired, or has already been used. Please try signing in or register again."
+                  : urlError}
+              </span>
             </div>
           )}
 
